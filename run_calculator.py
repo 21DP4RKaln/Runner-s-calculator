@@ -9,15 +9,17 @@ class ModernRunnerCalculator:
     def __init__(self, root):
         self.root = root
         self.root.title("Skrējēja Kalkulators")
-        self.root.geometry("800x700")
+        self.root.geometry("1200x900")
         self.root.resizable(True, True)
         
-        # Galvenās krāsas
-        self.primary_color = "#3498db"  # zila
-        self.secondary_color = "#2ecc71"  # zaļa
-        self.bg_color = "#f9f9f9"  # gandrīz balts
-        self.text_color = "#333333"  # tumši pelēks
-        self.accent_color = "#e74c3c"  # sarkana
+        # Krāsu shēma - dark mode
+        self.bg_color = "#121212"  # tumši pelēks/melns fons
+        self.card_bg = "#1E1E1E"   # nedaudz gaišāks pelēks priekš kartēm
+        self.primary_color = "#4169E1"  # royal blue
+        self.secondary_color = "#9370DB"  # medium purple
+        self.accent_color = "#7B68EE"  # medium slate blue
+        self.text_color = "#E0E0E0"  # gandrīz balts teksts
+        self.text_secondary = "#A0A0A0"  # sekundārais teksts
         
         # Fonts
         self.font_title = ("Helvetica", 20, "bold")
@@ -27,11 +29,48 @@ class ModernRunnerCalculator:
         
         # Stils
         self.style = ttk.Style()
-        self.style.configure("TButton", font=self.font_normal, padding=10)
-        self.style.configure("TLabel", font=self.font_normal, background=self.bg_color, foreground=self.text_color)
-        self.style.configure("TEntry", font=self.font_normal)
-        self.style.configure("TFrame", background=self.bg_color)
+        self.style.theme_use("clam")  # Izmantojam "clam" tēmu, ko var vieglāk pielāgot
         
+        # Konfigurējam stilus
+        self.style.configure("TFrame", background=self.bg_color)
+        self.style.configure("Card.TFrame", background=self.card_bg)
+        
+        self.style.configure("TLabel", 
+                          background=self.bg_color, 
+                          foreground=self.text_color, 
+                          font=self.font_normal)
+        
+        self.style.configure("Card.TLabel", 
+                          background=self.card_bg, 
+                          foreground=self.text_color)
+                          
+        self.style.configure("Secondary.TLabel", 
+                          background=self.bg_color, 
+                          foreground=self.text_secondary, 
+                          font=self.font_small)
+        
+        self.style.configure("TButton", 
+                          font=self.font_normal, 
+                          background=self.primary_color, 
+                          foreground=self.text_color)
+        
+        self.style.map("TButton",
+                    background=[('active', self.secondary_color)],
+                    foreground=[('active', self.text_color)])
+                    
+        self.style.configure("Accent.TButton", 
+                          background=self.accent_color, 
+                          foreground=self.text_color)
+        
+        self.style.map("Accent.TButton",
+                    background=[('active', self.secondary_color)],
+                    foreground=[('active', self.text_color)])
+                    
+        self.style.configure("TEntry", 
+                          fieldbackground=self.card_bg, 
+                          foreground=self.text_color, 
+                          insertcolor=self.text_color)
+                          
         # Iestatīt fonu
         self.root.configure(bg=self.bg_color)
         
@@ -44,21 +83,62 @@ class ModernRunnerCalculator:
         for widget in self.root.winfo_children():
             widget.destroy()
             
-        splash_frame = ttk.Frame(self.root)
+        splash_frame = ttk.Frame(self.root, style="TFrame")
         splash_frame.pack(fill=tk.BOTH, expand=True)
-        splash_frame.configure(style="TFrame")
         
-        # Animēts virsraksts
-        title_label = ttk.Label(splash_frame, text="Skrējēja Kalkulators", 
-                               font=("Helvetica", 32, "bold"), foreground=self.primary_color)
-        title_label.pack(pady=(100, 20))
+        # Izveidot Canvas gradientam
+        gradient_canvas = tk.Canvas(splash_frame, width=600, height=100, bg=self.bg_color, highlightthickness=0)
+        gradient_canvas.pack(pady=(80, 0))
+        
+        # Izveidot gradienta tekstu nosaukumam
+        text_id = gradient_canvas.create_text(300, 50, text="Skrējēja Kalkulators", font=("Helvetica", 36, "bold"))
+        
+        # Krāsu gradients (no primary līdz secondary)
+        def create_gradient():
+            colors = []
+            r1, g1, b1 = int(self.primary_color[1:3], 16), int(self.primary_color[3:5], 16), int(self.primary_color[5:], 16)
+            r2, g2, b2 = int(self.secondary_color[1:3], 16), int(self.secondary_color[3:5], 16), int(self.secondary_color[5:], 16)
+            r3, g3, b3 = int(self.accent_color[1:3], 16), int(self.accent_color[3:5], 16), int(self.accent_color[5:], 16)
+            
+            steps = 20
+            for i in range(steps):
+                # Linear interpolation no primary uz accent
+                if i < steps/2:
+                    t = (i / (steps/2))
+                    r = int(r1 + t*(r3-r1))
+                    g = int(g1 + t*(g3-g1))
+                    b = int(b1 + t*(b3-b1))
+                # Linear interpolation no accent uz secondary
+                else:
+                    t = ((i - steps/2) / (steps/2))
+                    r = int(r3 + t*(r2-r3))
+                    g = int(g3 + t*(g2-g3))
+                    b = int(b3 + t*(b2-b3))
+                    
+                color = f"#{r:02x}{g:02x}{b:02x}"
+                colors.append(color)
+            return colors
+                
+        gradient_colors = create_gradient()
+        
+        # Animēt gradienta krāsu
+        def animate_gradient():
+            # Paņemt pirmo krāsu un pielikt beigās
+            gradient_colors.append(gradient_colors.pop(0))
+            
+            gradient_canvas.itemconfig(text_id, fill=gradient_colors[0])
+            gradient_canvas.after(100, animate_gradient)
+            
+        self.root.after(100, animate_gradient)
         
         # Apakšvirsraksts
-        subtitle_label = ttk.Label(splash_frame, text="Plāno savus treniņus efektīvi!",
-                                 font=self.font_subtitle, foreground=self.text_color)
+        subtitle_label = ttk.Label(splash_frame, 
+                                text="Plāno savus treniņus efektīvi", 
+                                font=self.font_subtitle, 
+                                foreground=self.text_secondary)
         subtitle_label.pack(pady=10)
         
-        # Skrējēja animācija (vienkāršs teksta simbols, kas kustas)
+        # Skrējēja animācija
         canvas = tk.Canvas(splash_frame, width=600, height=150, bg=self.bg_color, highlightthickness=0)
         canvas.pack(pady=20)
         
@@ -66,23 +146,37 @@ class ModernRunnerCalculator:
         finish_line = canvas.create_line(550, 50, 550, 100, width=3, fill=self.accent_color)
         
         # Progress bar
-        progress_frame = ttk.Frame(splash_frame)
-        progress_frame.pack(pady=30)
+        progress_frame = ttk.Frame(splash_frame, style="TFrame")
+        progress_frame.pack(pady=20)
         
-        progress = ttk.Progressbar(progress_frame, orient="horizontal", length=400, mode="determinate")
-        progress.pack(pady=10)
+        # Pielāgots progress bar ar minimālistisku stilu
+        progress_bg = tk.Frame(progress_frame, width=400, height=6, bg=self.card_bg)
+        progress_bg.pack(pady=10)
         
-        status_label = ttk.Label(progress_frame, text="Ielādējas...", font=self.font_small)
+        progress_fg = tk.Frame(progress_bg, width=0, height=6, bg=self.accent_color)
+        progress_fg.place(x=0, y=0)
+        
+        status_label = ttk.Label(progress_frame, 
+                              text="Ielādējas...", 
+                              font=self.font_small, 
+                              foreground=self.text_secondary,
+                              style="Secondary.TLabel")
         status_label.pack()
 
         # Start poga (sākotnēji neredzama)
-        start_button = ttk.Button(splash_frame, text="Sākt Programmu", command=self.show_info)
+        start_button = ttk.Button(splash_frame, 
+                               text="Sākt Programmu", 
+                               command=self.show_info,
+                               style="Accent.TButton")
         start_button.pack(pady=20)
         start_button.pack_forget()  # Sākotnēji paslēpta
         
         # Autors
-        author_label = ttk.Label(splash_frame, text="Izstrādātājs: Skrējēju atbalsta komanda", 
-                              font=self.font_small, foreground="#888888")
+        author_label = ttk.Label(splash_frame, 
+                              text="Izstrādātājs: Skrējēju atbalsta komanda", 
+                              font=self.font_small, 
+                              foreground=self.text_secondary,
+                              style="Secondary.TLabel")
         author_label.pack(side=tk.BOTTOM, pady=10)
         
         # Animācija
@@ -96,13 +190,14 @@ class ModernRunnerCalculator:
                 
                 # Atjaunot progress bar
                 progress_val = min(100, int((x_pos / 530) * 100))
-                progress["value"] = progress_val
+                progress_width = int((progress_val / 100) * 400)
+                progress_fg.config(width=progress_width)
                 
                 # Atjaunot statusa tekstu
                 loading_texts = [
                     "Ielādējas...", 
                     "Aprēķinu formulas tiek sagatavotas...",
-                    "Skaitam distances...",
+                    "Skaitām distances...",
                     "Mērām tempus...",
                     "Gandrīz gatavs..."
                 ]
@@ -123,15 +218,19 @@ class ModernRunnerCalculator:
             widget.destroy()
             
         # Galvenais konteiners
-        main_frame = ttk.Frame(self.root)
+        main_frame = ttk.Frame(self.root, style="TFrame")
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
         
-        # Virsraksts
-        title_label = ttk.Label(main_frame, text="Par Programmu", font=self.font_title, foreground=self.primary_color)
-        title_label.pack(pady=(10, 30))
+        # Virsraksts ar gradient efektu
+        title_canvas = tk.Canvas(main_frame, width=400, height=60, bg=self.bg_color, highlightthickness=0)
+        title_canvas.pack(pady=(10, 30))
+        
+        title_text = title_canvas.create_text(200, 30, text="Par Programmu", 
+                                           font=self.font_title, 
+                                           fill=self.primary_color)
         
         # Informācijas rāmis
-        info_frame = ttk.Frame(main_frame)
+        info_frame = ttk.Frame(main_frame, style="Card.TFrame")
         info_frame.pack(fill=tk.BOTH, expand=True, padx=30, pady=10)
         
         # Programmas apraksts
@@ -141,8 +240,12 @@ class ModernRunnerCalculator:
         
         Ar šo kalkulatoru varat:
         """
-        desc_label = ttk.Label(info_frame, text=desc_text, justify="left", wraplength=600)
-        desc_label.pack(anchor="w", pady=10)
+        desc_label = ttk.Label(info_frame, 
+                            text=desc_text, 
+                            justify="left", 
+                            wraplength=600,
+                            style="Card.TLabel")
+        desc_label.pack(anchor="w", pady=20, padx=20)
         
         # Funkcionalitātes saraksts ar ikonām
         features = [
@@ -152,18 +255,26 @@ class ModernRunnerCalculator:
         ]
         
         for feature in features:
-            feature_frame = ttk.Frame(info_frame)
-            feature_frame.pack(fill=tk.X, pady=5, anchor="w")
+            feature_frame = ttk.Frame(info_frame, style="Card.TFrame")
+            feature_frame.pack(fill=tk.X, pady=5, anchor="w", padx=20)
             
-            feature_label = ttk.Label(feature_frame, text=feature, justify="left", wraplength=600)
-            feature_label.pack(anchor="w", padx=20)
+            feature_label = ttk.Label(feature_frame, 
+                                   text=feature, 
+                                   justify="left", 
+                                   wraplength=600,
+                                   style="Card.TLabel")
+            feature_label.pack(anchor="w", padx=20, pady=5)
         
         # Formulu piemēri
-        formula_frame = ttk.Frame(info_frame)
-        formula_frame.pack(fill=tk.X, pady=20)
+        formula_frame = ttk.Frame(info_frame, style="Card.TFrame")
+        formula_frame.pack(fill=tk.X, pady=20, padx=20)
         
-        formula_title = ttk.Label(formula_frame, text="Formulas:", font=self.font_subtitle)
-        formula_title.pack(anchor="w", pady=(10, 5))
+        formula_title = ttk.Label(formula_frame, 
+                               text="Formulas:", 
+                               font=self.font_subtitle,
+                               foreground=self.secondary_color,
+                               style="Card.TLabel")
+        formula_title.pack(anchor="w", pady=(10, 5), padx=20)
         
         formulas = [
             "• Temps = Laiks (min) / Distance (km)",
@@ -172,30 +283,34 @@ class ModernRunnerCalculator:
         ]
         
         for formula in formulas:
-            formula_label = ttk.Label(formula_frame, text=formula, justify="left")
+            formula_label = ttk.Label(formula_frame, 
+                                   text=formula, 
+                                   justify="left",
+                                   style="Card.TLabel")
             formula_label.pack(anchor="w", padx=20, pady=2)
         
         # Motivācijas citāts
-        quote_frame = ttk.Frame(info_frame, style="Quote.TFrame")
-        quote_frame.pack(fill=tk.X, pady=20, padx=10)
-        self.style.configure("Quote.TFrame", background="#e8f4f8", relief="ridge")
+        quote_frame = tk.Frame(info_frame, bg=self.card_bg, bd=0, highlightthickness=1, highlightbackground=self.secondary_color)
+        quote_frame.pack(fill=tk.X, pady=20, padx=30)
         
         quote = self.get_random_quote()
-        quote_label = ttk.Label(quote_frame, text=f'"{quote}"', 
-                             font=("Helvetica", 12, "italic"), 
-                             foreground="#444", background="#e8f4f8")
+        quote_label = tk.Label(quote_frame, 
+                            text=f'"{quote}"', 
+                            font=("Helvetica", 12, "italic"), 
+                            fg=self.text_color, 
+                            bg=self.card_bg)
         quote_label.pack(pady=15, padx=10)
         
         # Pogas rāmis
-        button_frame = ttk.Frame(main_frame)
+        button_frame = ttk.Frame(main_frame, style="TFrame")
         button_frame.pack(pady=30)
         
         # Sākt pogas
-        start_button = ttk.Button(button_frame, text="Sākt Lietot Programmu", 
-                                command=self.create_main_page,
-                                style="Accent.TButton")
+        start_button = ttk.Button(button_frame, 
+                               text="Sākt Lietot Programmu", 
+                               command=self.create_main_page,
+                               style="Accent.TButton")
         start_button.pack(pady=10)
-        self.style.configure("Accent.TButton", background=self.secondary_color, foreground="white")
     
     def create_main_page(self):
         """Izveido galveno programmas lapu"""
@@ -204,23 +319,27 @@ class ModernRunnerCalculator:
             widget.destroy()
             
         # Izveidot dalītu skatu - kreisā puse navigācija, labā puse saturs
-        self.paned_window = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
-        self.paned_window.pack(fill=tk.BOTH, expand=True)
+        main_container = ttk.Frame(self.root, style="TFrame")
+        main_container.pack(fill=tk.BOTH, expand=True)
         
         # Kreisā puse - izvēlne
-        self.menu_frame = ttk.Frame(self.paned_window, width=200)
-        self.menu_frame.pack(fill=tk.Y, expand=False, side=tk.LEFT)
+        self.menu_frame = ttk.Frame(main_container, style="Card.TFrame", width=200)
+        self.menu_frame.pack(fill=tk.Y, expand=False, side=tk.LEFT, padx=2, pady=2)
+        
+        # Nodrošināt, ka menu_frame saglabā savu platumu
+        self.menu_frame.pack_propagate(False)
         
         # Labā puse - saturs
-        self.content_frame = ttk.Frame(self.paned_window)
-        self.content_frame.pack(fill=tk.BOTH, expand=True, side=tk.RIGHT)
-        
-        self.paned_window.add(self.menu_frame)
-        self.paned_window.add(self.content_frame)
+        self.content_frame = ttk.Frame(main_container, style="TFrame")
+        self.content_frame.pack(fill=tk.BOTH, expand=True, side=tk.RIGHT, padx=2, pady=2)
         
         # Izvēlnes virsraksts
-        menu_title = ttk.Label(self.menu_frame, text="Kalkulatori", font=self.font_subtitle, foreground=self.primary_color)
-        menu_title.pack(pady=(20, 10), padx=10)
+        menu_title = ttk.Label(self.menu_frame, 
+                            text="Kalkulatori", 
+                            font=self.font_subtitle, 
+                            foreground=self.primary_color,
+                            style="Card.TLabel")
+        menu_title.pack(pady=(20, 20), padx=10)
         
         # Izvēlnes pogas
         menu_options = [
@@ -232,20 +351,33 @@ class ModernRunnerCalculator:
         
         for text, command, icon in menu_options:
             button_text = f"{icon} {text}"
-            button = tk.Button(self.menu_frame, text=button_text, command=command,
-                            font=self.font_normal, bg=self.bg_color, bd=0,
-                            highlightthickness=0, activebackground="#e6e6e6",
-                            width=20, anchor="w", padx=10, height=2)
-            button.pack(fill=tk.X, pady=2)
+            button = tk.Button(self.menu_frame, 
+                            text=button_text, 
+                            command=command,
+                            font=self.font_normal, 
+                            bg=self.card_bg, 
+                            fg=self.text_color,
+                            bd=0,
+                            highlightthickness=0, 
+                            activebackground=self.primary_color,
+                            activeforeground=self.text_color,
+                            width=20, 
+                            anchor="w", 
+                            padx=10, 
+                            height=2)
+            button.pack(fill=tk.X, pady=1)
         
         # Motivācijas citāts
-        quote_frame = tk.Frame(self.menu_frame, bg="#e8f4f8", relief="ridge", bd=1)
-        quote_frame.pack(fill=tk.X, pady=10, padx=5, side=tk.BOTTOM)
+        quote_frame = tk.Frame(self.menu_frame, bg=self.card_bg, bd=0, highlightthickness=1, highlightbackground=self.secondary_color)
+        quote_frame.pack(fill=tk.X, pady=20, padx=10, side=tk.BOTTOM)
         
         quote = self.get_random_quote()
-        quote_label = tk.Label(quote_frame, text=f'"{quote}"', 
+        quote_label = tk.Label(quote_frame, 
+                            text=f'"{quote}"', 
                             font=("Helvetica", 10, "italic"), 
-                            fg="#444", bg="#e8f4f8", wraplength=180)
+                            fg=self.text_secondary, 
+                            bg=self.card_bg, 
+                            wraplength=180)
         quote_label.pack(pady=10, padx=10)
         
         # Sākotnēji parādīt tempa kalkulatoru
@@ -268,103 +400,159 @@ class ModernRunnerCalculator:
     def create_pace_calculator(self):
         """Izveido tempa kalkulatora formu"""
         # Virsraksts
-        title_frame = ttk.Frame(self.content_frame)
+        title_frame = ttk.Frame(self.content_frame, style="TFrame")
         title_frame.pack(fill=tk.X, pady=(20, 30), padx=30)
         
-        title_label = ttk.Label(title_frame, text="⏱️ Tempa Kalkulators", font=self.font_title, foreground=self.primary_color)
+        title_label = ttk.Label(title_frame, 
+                             text="⏱️ Tempa Kalkulators", 
+                             font=self.font_title, 
+                             foreground=self.primary_color)
         title_label.pack(side=tk.LEFT)
         
         # Apraksts
-        desc_frame = ttk.Frame(self.content_frame)
-        desc_frame.pack(fill=tk.X, pady=10, padx=30)
+        desc_frame = ttk.Frame(self.content_frame, style="TFrame")
+        desc_frame.pack(fill=tk.X, pady=5, padx=30)
         
         desc_text = "Aprēķini nepieciešamo tempu, lai sasniegtu mērķa distanci noteiktā laikā."
         desc_label = ttk.Label(desc_frame, text=desc_text, wraplength=500)
         desc_label.pack(anchor="w")
         
         # Formula
-        formula_frame = ttk.Frame(self.content_frame)
-        formula_frame.pack(fill=tk.X, pady=10, padx=30)
+        formula_frame = ttk.Frame(self.content_frame, style="TFrame")
+        formula_frame.pack(fill=tk.X, pady=5, padx=30)
         
         formula_text = "Formula: Temps = Laiks / Distance"
-        formula_label = ttk.Label(formula_frame, text=formula_text, font=self.font_small, foreground="#666666")
+        formula_label = ttk.Label(formula_frame, 
+                               text=formula_text, 
+                               font=self.font_small, 
+                               foreground=self.text_secondary,
+                               style="Secondary.TLabel")
         formula_label.pack(anchor="w")
         
         # Ievades lauki
-        input_frame = ttk.Frame(self.content_frame)
+        input_frame = ttk.Frame(self.content_frame, style="TFrame")
         input_frame.pack(fill=tk.X, pady=20, padx=30)
         
         # Stila rāmis
         entry_style_frame = ttk.Frame(input_frame, style="Card.TFrame")
         entry_style_frame.pack(fill=tk.X, pady=10, padx=10)
-        self.style.configure("Card.TFrame", background="#ffffff", relief="ridge")
         
         # Distance
-        distance_frame = ttk.Frame(entry_style_frame)
-        distance_frame.pack(fill=tk.X, pady=10, padx=20)
+        distance_frame = ttk.Frame(entry_style_frame, style="Card.TFrame")
+        distance_frame.pack(fill=tk.X, pady=15, padx=20)
         
-        distance_label = ttk.Label(distance_frame, text="Distance (km):", width=20, anchor="w")
+        distance_label = ttk.Label(distance_frame, 
+                                text="Distance (km):", 
+                                width=20, 
+                                anchor="w",
+                                style="Card.TLabel")
         distance_label.pack(side=tk.LEFT, padx=(0, 10))
         
+        # Pielāgots input lauks
         distance_var = tk.StringVar()
-        distance_entry = ttk.Entry(distance_frame, textvariable=distance_var, width=15)
+        distance_entry = tk.Entry(distance_frame, 
+                               textvariable=distance_var, 
+                               width=15,
+                               bg=self.bg_color,
+                               fg=self.text_color,
+                               insertbackground=self.text_color,
+                               relief="flat",
+                               highlightthickness=1,
+                               highlightcolor=self.primary_color,
+                               highlightbackground=self.secondary_color)
         distance_entry.pack(side=tk.LEFT)
         
-        distance_example = ttk.Label(distance_frame, text="Piemērs: 5", font=self.font_small, foreground="#888888")
+        distance_example = ttk.Label(distance_frame, 
+                                  text="Piemērs: 5", 
+                                  font=self.font_small, 
+                                  foreground=self.text_secondary,
+                                  style="Secondary.TLabel")
         distance_example.pack(side=tk.LEFT, padx=10)
         
         # Laiks
-        time_frame = ttk.Frame(entry_style_frame)
-        time_frame.pack(fill=tk.X, pady=10, padx=20)
+        time_frame = ttk.Frame(entry_style_frame, style="Card.TFrame")
+        time_frame.pack(fill=tk.X, pady=15, padx=20)
         
-        time_label = ttk.Label(time_frame, text="Laiks (hh:mm:ss):", width=20, anchor="w")
+        time_label = ttk.Label(time_frame, 
+                            text="Laiks (hh:mm:ss):", 
+                            width=20, 
+                            anchor="w",
+                            style="Card.TLabel")
         time_label.pack(side=tk.LEFT, padx=(0, 10))
         
         time_var = tk.StringVar()
-        time_entry = ttk.Entry(time_frame, textvariable=time_var, width=15)
+        time_entry = tk.Entry(time_frame, 
+                           textvariable=time_var, 
+                           width=15,
+                           bg=self.bg_color,
+                           fg=self.text_color,
+                           insertbackground=self.text_color,
+                           relief="flat",
+                           highlightthickness=1,
+                           highlightcolor=self.primary_color,
+                           highlightbackground=self.secondary_color)
         time_entry.pack(side=tk.LEFT)
         
-        time_example = ttk.Label(time_frame, text="Piemērs: 00:35:00 vai 35:00", font=self.font_small, foreground="#888888")
+        time_example = ttk.Label(time_frame, 
+                              text="Piemērs: 00:35:00 vai 35:00", 
+                              font=self.font_small, 
+                              foreground=self.text_secondary,
+                              style="Secondary.TLabel")
         time_example.pack(side=tk.LEFT, padx=10)
         
         # Rezultāts
-        result_frame = ttk.Frame(self.content_frame)
+        result_frame = ttk.Frame(self.content_frame, style="TFrame")
         result_frame.pack(fill=tk.X, pady=20, padx=30)
         
-        result_label = ttk.Label(result_frame, text="Rezultāts parādīsies šeit", 
-                               font=self.font_subtitle, foreground="#888888",
-                               background="#f0f0f0", padding=20)
-        result_label.pack(fill=tk.X)
+        result_bg = tk.Frame(result_frame, bg=self.card_bg, bd=0)
+        result_bg.pack(fill=tk.X)
+        
+        self.result_label = tk.Label(result_bg, 
+                                  text="Rezultāts parādīsies šeit", 
+                                  font=self.font_subtitle, 
+                                  fg=self.text_secondary,
+                                  bg=self.card_bg, 
+                                  padx=20, 
+                                  pady=20)
+        self.result_label.pack(fill=tk.X)
         
         # Vizualizācija
-        visual_frame = ttk.Frame(self.content_frame)
+        visual_frame = ttk.Frame(self.content_frame, style="Card.TFrame")
         visual_frame.pack(fill=tk.X, pady=10, padx=30)
         
-        canvas = tk.Canvas(visual_frame, width=500, height=100, bg=self.bg_color, highlightthickness=0)
-        canvas.pack()
+        canvas = tk.Canvas(visual_frame, 
+                        width=500, 
+                        height=100, 
+                        bg=self.card_bg, 
+                        highlightthickness=0)
+        canvas.pack(padx=20, pady=20)
         
         # Zīmēsim skrējēja ikonu un rezultātu vizualizāciju
         runner_icon = canvas.create_text(40, 50, text="🏃", font=("Arial", 24))
-        track = canvas.create_line(80, 50, 480, 50, width=2, fill="#cccccc")
+        track = canvas.create_line(80, 50, 480, 50, width=2, fill=self.text_secondary)
         
         # Pogas
-        button_frame = ttk.Frame(self.content_frame)
+        button_frame = ttk.Frame(self.content_frame, style="TFrame")
         button_frame.pack(fill=tk.X, pady=20, padx=30)
         
-        calculate_button = ttk.Button(button_frame, text="Aprēķināt Tempu", 
-                                    style="Accent.TButton")
+        calculate_button = ttk.Button(button_frame, 
+                                   text="Aprēķināt Tempu", 
+                                   style="Accent.TButton")
         calculate_button.pack(side=tk.LEFT, padx=5)
-        self.style.configure("Accent.TButton", background=self.secondary_color, foreground="white")
         
         reset_button = ttk.Button(button_frame, text="Notīrīt")
         reset_button.pack(side=tk.LEFT, padx=5)
         
         # Papildu informācija
-        info_frame = ttk.Frame(self.content_frame)
+        info_frame = ttk.Frame(self.content_frame, style="TFrame")
         info_frame.pack(fill=tk.X, pady=10, padx=30, side=tk.BOTTOM)
         
         info_text = "Padoms: Ievadiet distanci un vēlamo laiku, lai aprēķinātu nepieciešamo tempu."
-        info_label = ttk.Label(info_frame, text=info_text, font=self.font_small, foreground="#888888")
+        info_label = ttk.Label(info_frame, 
+                            text=info_text, 
+                            font=self.font_small, 
+                            foreground=self.text_secondary,
+                            style="Secondary.TLabel")
         info_label.pack(anchor="w")
         
         # Funkcijas
@@ -397,8 +585,9 @@ class ModernRunnerCalculator:
                 pace_formatted = self.format_minutes_to_time(pace_in_minutes)
                 
                 # Parādīt rezultātu
-                result_label.config(text=f"Jūsu temps: {pace_formatted} min/km", 
-                                   foreground="#000000", background="#d4edda")
+                self.result_label.config(text=f"Jūsu temps: {pace_formatted} min/km", 
+                                       fg=self.text_color, 
+                                       bg=self.card_bg)
                 
                 # Atjaunot vizualizāciju
                 self.update_pace_visualization(canvas, runner_icon, pace_in_minutes)
@@ -412,8 +601,9 @@ class ModernRunnerCalculator:
             """Notīrīt ievades laukus"""
             distance_var.set("")
             time_var.set("")
-            result_label.config(text="Rezultāts parādīsies šeit", 
-                              foreground="#888888", background="#f0f0f0")
+            self.result_label.config(text="Rezultāts parādīsies šeit", 
+                                  fg=self.text_secondary, 
+                                  bg=self.card_bg)
             
             # Atiestatīt vizualizāciju
             canvas.coords(runner_icon, 40, 50)
