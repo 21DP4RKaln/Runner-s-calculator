@@ -3,14 +3,14 @@ from tkinter import ttk, messagebox
 import re
 import math
 
-class SimpleRunnerCalculator:
+class RunnerCalculator:
     def __init__(self, root):
         self.root = root
         self.root.title("Skrējēja Kalkulators")
         self.root.geometry("700x600")
         self.root.resizable(True, True)
         
-        # Krāsu shēma - dzeltens kā primārā krāsa
+        # Krāsu shēma
         self.bg_color = "#1E1E1E"  # tumši pelēks fons
         self.card_bg = "#2D2D30"   # nedaudz gaišāks pelēks priekš kartēm
         self.primary_color = "#FFD700"  # dzeltens (gold)
@@ -54,7 +54,7 @@ class SimpleRunnerCalculator:
         self.style.configure("TButton", 
                           font=self.font_normal, 
                           background=self.primary_color, 
-                          foreground="#000000")  # Melnais teksts uz dzeltena fona
+                          foreground="#000000")
         
         self.style.map("TButton",
                     background=[('active', self.accent_color)],
@@ -63,6 +63,12 @@ class SimpleRunnerCalculator:
         self.style.configure("TEntry", 
                           fieldbackground=self.card_bg, 
                           foreground=self.text_color)
+                          
+        # Spinbox stils
+        self.style.configure("TSpinbox", 
+                          fieldbackground=self.card_bg,
+                          foreground=self.text_color,
+                          arrowcolor=self.primary_color)
     
     def create_main_page(self):
         """Izveido galveno programmas lapu"""
@@ -201,36 +207,61 @@ class SimpleRunnerCalculator:
                                   style="Card.TLabel")
         distance_example.pack(side=tk.LEFT, padx=10)
         
-        # Laiks
+        # Laiks - atsevišķi lauki stundām, minūtēm un sekundēm
         time_frame = ttk.Frame(input_frame, style="Card.TFrame")
         time_frame.pack(fill=tk.X, pady=15, padx=20)
         
         time_label = ttk.Label(time_frame, 
-                            text="Laiks (mm:ss):", 
+                            text="Laiks:", 
                             width=16, 
                             anchor="w",
                             style="Card.TLabel")
         time_label.pack(side=tk.LEFT, padx=(0, 10))
         
-        time_var = tk.StringVar()
-        time_entry = tk.Entry(time_frame, 
-                           textvariable=time_var, 
-                           width=10,
-                           bg=self.bg_color,
-                           fg=self.text_color,
-                           insertbackground=self.text_color,
-                           relief="flat",
-                           highlightthickness=1,
-                           highlightcolor=self.primary_color,
-                           highlightbackground=self.accent_color)
-        time_entry.pack(side=tk.LEFT)
+        # Konteiners laika ievadei
+        time_input_frame = ttk.Frame(time_frame, style="Card.TFrame")
+        time_input_frame.pack(side=tk.LEFT)
         
-        time_example = ttk.Label(time_frame, 
-                              text="Piemērs: 35:00", 
-                              font=self.font_small, 
-                              foreground=self.text_secondary,
-                              style="Card.TLabel")
-        time_example.pack(side=tk.LEFT, padx=10)
+        # Stundu ievade
+        hours_var = tk.StringVar(value="0")
+        hours_spinbox = ttk.Spinbox(time_input_frame, 
+                                 from_=0, 
+                                 to=23, 
+                                 width=3,
+                                 textvariable=hours_var,
+                                 wrap=True)
+        hours_spinbox.pack(side=tk.LEFT, padx=(0, 2))
+        
+        ttk.Label(time_input_frame, text=":", style="Card.TLabel").pack(side=tk.LEFT)
+        
+        # Minūšu ievade
+        minutes_var = tk.StringVar(value="0")
+        minutes_spinbox = ttk.Spinbox(time_input_frame, 
+                                   from_=0, 
+                                   to=59, 
+                                   width=3,
+                                   textvariable=minutes_var,
+                                   wrap=True)
+        minutes_spinbox.pack(side=tk.LEFT, padx=(2, 2))
+        
+        ttk.Label(time_input_frame, text=":", style="Card.TLabel").pack(side=tk.LEFT)
+        
+        # Sekunžu ievade
+        seconds_var = tk.StringVar(value="0")
+        seconds_spinbox = ttk.Spinbox(time_input_frame, 
+                                   from_=0, 
+                                   to=59, 
+                                   width=3,
+                                   textvariable=seconds_var,
+                                   wrap=True)
+        seconds_spinbox.pack(side=tk.LEFT, padx=(2, 0))
+        
+        time_format_label = ttk.Label(time_frame, 
+                                   text="hh:mm:ss", 
+                                   font=self.font_small, 
+                                   foreground=self.text_secondary,
+                                   style="Card.TLabel")
+        time_format_label.pack(side=tk.LEFT, padx=10)
         
         # Rezultāts
         result_frame = ttk.Frame(self.content_frame, style="TFrame")
@@ -254,12 +285,12 @@ class SimpleRunnerCalculator:
         
         calculate_button = ttk.Button(button_frame, 
                                    text="Aprēķināt Tempu", 
-                                   command=lambda: self.calculate_pace(distance_var, time_var))
+                                   command=lambda: self.calculate_pace(distance_var, hours_var, minutes_var, seconds_var))
         calculate_button.pack(side=tk.LEFT, padx=5)
         
         reset_button = ttk.Button(button_frame, 
                                text="Notīrīt", 
-                               command=lambda: self.reset_fields(distance_var, time_var, self.pace_result_label))
+                               command=lambda: self.reset_pace_fields(distance_var, hours_var, minutes_var, seconds_var))
         reset_button.pack(side=tk.LEFT, padx=5)
     
     def create_time_calculator(self):
@@ -328,7 +359,7 @@ class SimpleRunnerCalculator:
                                   style="Card.TLabel")
         distance_example.pack(side=tk.LEFT, padx=10)
         
-        # Temps
+        # Temps - atsevišķi lauki minūtēm un sekundēm
         pace_frame = ttk.Frame(input_frame, style="Card.TFrame")
         pace_frame.pack(fill=tk.X, pady=15, padx=20)
         
@@ -339,25 +370,38 @@ class SimpleRunnerCalculator:
                             style="Card.TLabel")
         pace_label.pack(side=tk.LEFT, padx=(0, 10))
         
-        pace_var = tk.StringVar()
-        pace_entry = tk.Entry(pace_frame, 
-                           textvariable=pace_var, 
-                           width=10,
-                           bg=self.bg_color,
-                           fg=self.text_color,
-                           insertbackground=self.text_color,
-                           relief="flat",
-                           highlightthickness=1,
-                           highlightcolor=self.primary_color,
-                           highlightbackground=self.accent_color)
-        pace_entry.pack(side=tk.LEFT)
+        # Konteiners tempa ievadei
+        pace_input_frame = ttk.Frame(pace_frame, style="Card.TFrame")
+        pace_input_frame.pack(side=tk.LEFT)
         
-        pace_example = ttk.Label(pace_frame, 
-                              text="Piemērs: 5:30", 
-                              font=self.font_small, 
-                              foreground=self.text_secondary,
-                              style="Card.TLabel")
-        pace_example.pack(side=tk.LEFT, padx=10)
+        # Minūšu ievade
+        pace_minutes_var = tk.StringVar(value="5")
+        pace_minutes_spinbox = ttk.Spinbox(pace_input_frame, 
+                                        from_=0, 
+                                        to=59, 
+                                        width=3,
+                                        textvariable=pace_minutes_var,
+                                        wrap=True)
+        pace_minutes_spinbox.pack(side=tk.LEFT, padx=(0, 2))
+        
+        ttk.Label(pace_input_frame, text=":", style="Card.TLabel").pack(side=tk.LEFT)
+        
+        # Sekunžu ievade
+        pace_seconds_var = tk.StringVar(value="30")
+        pace_seconds_spinbox = ttk.Spinbox(pace_input_frame, 
+                                        from_=0, 
+                                        to=59, 
+                                        width=3,
+                                        textvariable=pace_seconds_var,
+                                        wrap=True)
+        pace_seconds_spinbox.pack(side=tk.LEFT, padx=(2, 0))
+        
+        pace_format_label = ttk.Label(pace_frame, 
+                                   text="min:sec", 
+                                   font=self.font_small, 
+                                   foreground=self.text_secondary,
+                                   style="Card.TLabel")
+        pace_format_label.pack(side=tk.LEFT, padx=10)
         
         # Rezultāts
         result_frame = ttk.Frame(self.content_frame, style="TFrame")
@@ -381,12 +425,12 @@ class SimpleRunnerCalculator:
         
         calculate_button = ttk.Button(button_frame, 
                                    text="Aprēķināt Laiku", 
-                                   command=lambda: self.calculate_time(distance_var, pace_var))
+                                   command=lambda: self.calculate_time(distance_var, pace_minutes_var, pace_seconds_var))
         calculate_button.pack(side=tk.LEFT, padx=5)
         
         reset_button = ttk.Button(button_frame, 
                                text="Notīrīt", 
-                               command=lambda: self.reset_fields(distance_var, pace_var, self.time_result_label))
+                               command=lambda: self.reset_time_fields(distance_var, pace_minutes_var, pace_seconds_var))
         reset_button.pack(side=tk.LEFT, padx=5)
 
     def create_distance_calculator(self):
@@ -424,38 +468,63 @@ class SimpleRunnerCalculator:
         input_frame = ttk.Frame(self.content_frame, style="Card.TFrame")
         input_frame.pack(fill=tk.X, pady=20, padx=30)
         
-        # Laiks
+        # Laiks - atsevišķi lauki stundām, minūtēm un sekundēm
         time_frame = ttk.Frame(input_frame, style="Card.TFrame")
         time_frame.pack(fill=tk.X, pady=15, padx=20)
         
         time_label = ttk.Label(time_frame, 
-                            text="Laiks (mm:ss):", 
+                            text="Laiks:", 
                             width=16, 
                             anchor="w",
                             style="Card.TLabel")
         time_label.pack(side=tk.LEFT, padx=(0, 10))
         
-        time_var = tk.StringVar()
-        time_entry = tk.Entry(time_frame, 
-                           textvariable=time_var, 
-                           width=10,
-                           bg=self.bg_color,
-                           fg=self.text_color,
-                           insertbackground=self.text_color,
-                           relief="flat",
-                           highlightthickness=1,
-                           highlightcolor=self.primary_color,
-                           highlightbackground=self.accent_color)
-        time_entry.pack(side=tk.LEFT)
+        # Konteiners laika ievadei
+        time_input_frame = ttk.Frame(time_frame, style="Card.TFrame")
+        time_input_frame.pack(side=tk.LEFT)
         
-        time_example = ttk.Label(time_frame, 
-                              text="Piemērs: 45:00", 
-                              font=self.font_small, 
-                              foreground=self.text_secondary,
-                              style="Card.TLabel")
-        time_example.pack(side=tk.LEFT, padx=10)
+        # Stundu ievade
+        hours_var = tk.StringVar(value="0")
+        hours_spinbox = ttk.Spinbox(time_input_frame, 
+                                 from_=0, 
+                                 to=23, 
+                                 width=3,
+                                 textvariable=hours_var,
+                                 wrap=True)
+        hours_spinbox.pack(side=tk.LEFT, padx=(0, 2))
         
-        # Temps
+        ttk.Label(time_input_frame, text=":", style="Card.TLabel").pack(side=tk.LEFT)
+        
+        # Minūšu ievade
+        minutes_var = tk.StringVar(value="45")
+        minutes_spinbox = ttk.Spinbox(time_input_frame, 
+                                   from_=0, 
+                                   to=59, 
+                                   width=3,
+                                   textvariable=minutes_var,
+                                   wrap=True)
+        minutes_spinbox.pack(side=tk.LEFT, padx=(2, 2))
+        
+        ttk.Label(time_input_frame, text=":", style="Card.TLabel").pack(side=tk.LEFT)
+        
+        # Sekunžu ievade
+        seconds_var = tk.StringVar(value="0")
+        seconds_spinbox = ttk.Spinbox(time_input_frame, 
+                                   from_=0, 
+                                   to=59, 
+                                   width=3,
+                                   textvariable=seconds_var,
+                                   wrap=True)
+        seconds_spinbox.pack(side=tk.LEFT, padx=(2, 0))
+        
+        time_format_label = ttk.Label(time_frame, 
+                                   text="hh:mm:ss", 
+                                   font=self.font_small, 
+                                   foreground=self.text_secondary,
+                                   style="Card.TLabel")
+        time_format_label.pack(side=tk.LEFT, padx=10)
+        
+        # Temps - atsevišķi lauki minūtēm un sekundēm
         pace_frame = ttk.Frame(input_frame, style="Card.TFrame")
         pace_frame.pack(fill=tk.X, pady=15, padx=20)
         
@@ -466,25 +535,38 @@ class SimpleRunnerCalculator:
                             style="Card.TLabel")
         pace_label.pack(side=tk.LEFT, padx=(0, 10))
         
-        pace_var = tk.StringVar()
-        pace_entry = tk.Entry(pace_frame, 
-                           textvariable=pace_var, 
-                           width=10,
-                           bg=self.bg_color,
-                           fg=self.text_color,
-                           insertbackground=self.text_color,
-                           relief="flat",
-                           highlightthickness=1,
-                           highlightcolor=self.primary_color,
-                           highlightbackground=self.accent_color)
-        pace_entry.pack(side=tk.LEFT)
+        # Konteiners tempa ievadei
+        pace_input_frame = ttk.Frame(pace_frame, style="Card.TFrame")
+        pace_input_frame.pack(side=tk.LEFT)
         
-        pace_example = ttk.Label(pace_frame, 
-                              text="Piemērs: 5:45", 
-                              font=self.font_small, 
-                              foreground=self.text_secondary,
-                              style="Card.TLabel")
-        pace_example.pack(side=tk.LEFT, padx=10)
+        # Minūšu ievade
+        pace_minutes_var = tk.StringVar(value="5")
+        pace_minutes_spinbox = ttk.Spinbox(pace_input_frame, 
+                                        from_=0, 
+                                        to=59, 
+                                        width=3,
+                                        textvariable=pace_minutes_var,
+                                        wrap=True)
+        pace_minutes_spinbox.pack(side=tk.LEFT, padx=(0, 2))
+        
+        ttk.Label(pace_input_frame, text=":", style="Card.TLabel").pack(side=tk.LEFT)
+        
+        # Sekunžu ievade
+        pace_seconds_var = tk.StringVar(value="45")
+        pace_seconds_spinbox = ttk.Spinbox(pace_input_frame, 
+                                        from_=0, 
+                                        to=59, 
+                                        width=3,
+                                        textvariable=pace_seconds_var,
+                                        wrap=True)
+        pace_seconds_spinbox.pack(side=tk.LEFT, padx=(2, 0))
+        
+        pace_format_label = ttk.Label(pace_frame, 
+                                   text="min:sec", 
+                                   font=self.font_small, 
+                                   foreground=self.text_secondary,
+                                   style="Card.TLabel")
+        pace_format_label.pack(side=tk.LEFT, padx=10)
         
         # Rezultāts
         result_frame = ttk.Frame(self.content_frame, style="TFrame")
@@ -508,40 +590,61 @@ class SimpleRunnerCalculator:
         
         calculate_button = ttk.Button(button_frame, 
                                    text="Aprēķināt Distanci", 
-                                   command=lambda: self.calculate_distance(time_var, pace_var))
+                                   command=lambda: self.calculate_distance(hours_var, minutes_var, seconds_var, 
+                                                                        pace_minutes_var, pace_seconds_var))
         calculate_button.pack(side=tk.LEFT, padx=5)
         
         reset_button = ttk.Button(button_frame, 
                                text="Notīrīt", 
-                               command=lambda: self.reset_fields(time_var, pace_var, self.distance_result_label))
+                               command=lambda: self.reset_distance_fields(hours_var, minutes_var, seconds_var, 
+                                                                       pace_minutes_var, pace_seconds_var))
         reset_button.pack(side=tk.LEFT, padx=5)
     
-    def calculate_pace(self, distance_var, time_var):
+    def calculate_pace(self, distance_var, hours_var, minutes_var, seconds_var):
         """Aprēķina tempu"""
         try:
             # Pārbaudīt distanci
             distance_str = distance_var.get().strip().replace(',', '.')
             if not distance_str:
                 raise ValueError("Distance nav ievadīta.")
-            distance = float(distance_str)
-            if distance <= 0:
-                raise ValueError("Distancei jābūt pozitīvam skaitlim.")
+            
+            try:
+                distance = float(distance_str)
+                if distance <= 0:
+                    raise ValueError("Distancei jābūt pozitīvam skaitlim.")
+            except ValueError:
+                raise ValueError("Ievadītā distance nav derīgs skaitlis.")
             
             # Pārbaudīt laiku
-            time_str = time_var.get().strip()
-            if not time_str:
-                raise ValueError("Laiks nav ievadīts.")
-            
-            # Laika pārbaude un pārvēršana minūtēs
-            time_in_minutes = self.parse_time_to_minutes(time_str)
-            if time_in_minutes <= 0:
-                raise ValueError("Laikam jābūt pozitīvam.")
+            try:
+                hours = int(hours_var.get())
+                minutes = int(minutes_var.get())
+                seconds = int(seconds_var.get())
+                
+                if hours < 0 or minutes < 0 or seconds < 0:
+                    raise ValueError("Laika vērtībām jābūt pozitīvām.")
+                
+                if minutes >= 60 or seconds >= 60:
+                    raise ValueError("Minūtēm un sekundēm jābūt mazākām par 60.")
+                
+                # Aprēķināt kopējo laiku minūtēs
+                time_in_minutes = hours * 60 + minutes + seconds / 60
+                
+                if time_in_minutes <= 0:
+                    raise ValueError("Kopējam laikam jābūt lielākam par nulli.")
+            except ValueError as e:
+                if "invalid literal for int()" in str(e):
+                    raise ValueError("Laikam jābūt skaitlim.")
+                else:
+                    raise e
             
             # Aprēķināt tempu
             pace_in_minutes = time_in_minutes / distance
             
             # Formatēt tempu
-            pace_formatted = self.format_minutes_to_time(pace_in_minutes)
+            pace_minutes = int(pace_in_minutes)
+            pace_seconds = int((pace_in_minutes - pace_minutes) * 60)
+            pace_formatted = f"{pace_minutes}:{pace_seconds:02d}"
             
             # Parādīt rezultātu
             self.pace_result_label.config(
@@ -554,32 +657,56 @@ class SimpleRunnerCalculator:
         except Exception as e:
             messagebox.showerror("Kļūda", f"Notika kļūda: {e}")
     
-    def calculate_time(self, distance_var, pace_var):
+    def calculate_time(self, distance_var, pace_minutes_var, pace_seconds_var):
         """Aprēķina laiku"""
         try:
             # Pārbaudīt distanci
             distance_str = distance_var.get().strip().replace(',', '.')
             if not distance_str:
                 raise ValueError("Distance nav ievadīta.")
-            distance = float(distance_str)
-            if distance <= 0:
-                raise ValueError("Distancei jābūt pozitīvam skaitlim.")
+            
+            try:
+                distance = float(distance_str)
+                if distance <= 0:
+                    raise ValueError("Distancei jābūt pozitīvam skaitlim.")
+            except ValueError:
+                raise ValueError("Ievadītā distance nav derīgs skaitlis.")
             
             # Pārbaudīt tempu
-            pace_str = pace_var.get().strip()
-            if not pace_str:
-                raise ValueError("Temps nav ievadīts.")
-            
-            # Tempa pārbaude un pārvēršana minūtēs
-            pace_in_minutes = self.parse_pace_to_minutes(pace_str)
-            if pace_in_minutes <= 0:
-                raise ValueError("Tempam jābūt pozitīvam.")
+            try:
+                pace_minutes = int(pace_minutes_var.get())
+                pace_seconds = int(pace_seconds_var.get())
+                
+                if pace_minutes < 0 or pace_seconds < 0:
+                    raise ValueError("Tempa vērtībām jābūt pozitīvām.")
+                
+                if pace_seconds >= 60:
+                    raise ValueError("Sekundēm jābūt mazākām par 60.")
+                
+                # Aprēķināt kopējo tempu minūtēs
+                pace_in_minutes = pace_minutes + pace_seconds / 60
+                
+                if pace_in_minutes <= 0:
+                    raise ValueError("Tempam jābūt lielākam par nulli.")
+            except ValueError as e:
+                if "invalid literal for int()" in str(e):
+                    raise ValueError("Tempam jābūt skaitlim.")
+                else:
+                    raise e
             
             # Aprēķināt laiku
             time_in_minutes = pace_in_minutes * distance
             
             # Formatēt laiku
-            time_formatted = self.format_time_for_display(time_in_minutes)
+            hours = int(time_in_minutes // 60)
+            minutes = int(time_in_minutes % 60)
+            seconds = int((time_in_minutes - int(time_in_minutes)) * 60)
+            
+            # Rezultāta formatēšana
+            if hours > 0:
+                time_formatted = f"{hours}:{minutes:02d}:{seconds:02d}"
+            else:
+                time_formatted = f"{minutes}:{seconds:02d}"
             
             # Parādīt rezultātu
             self.time_result_label.config(
@@ -592,28 +719,53 @@ class SimpleRunnerCalculator:
         except Exception as e:
             messagebox.showerror("Kļūda", f"Notika kļūda: {e}")
     
-    def calculate_distance(self, time_var, pace_var):
+    def calculate_distance(self, hours_var, minutes_var, seconds_var, pace_minutes_var, pace_seconds_var):
         """Aprēķina distanci"""
         try:
             # Pārbaudīt laiku
-            time_str = time_var.get().strip()
-            if not time_str:
-                raise ValueError("Laiks nav ievadīts.")
-            
-            # Laika pārbaude un pārvēršana minūtēs
-            time_in_minutes = self.parse_time_to_minutes(time_str)
-            if time_in_minutes <= 0:
-                raise ValueError("Laikam jābūt pozitīvam.")
+            try:
+                hours = int(hours_var.get())
+                minutes = int(minutes_var.get())
+                seconds = int(seconds_var.get())
+                
+                if hours < 0 or minutes < 0 or seconds < 0:
+                    raise ValueError("Laika vērtībām jābūt pozitīvām.")
+                
+                if minutes >= 60 or seconds >= 60:
+                    raise ValueError("Minūtēm un sekundēm jābūt mazākām par 60.")
+                
+                # Aprēķināt kopējo laiku minūtēs
+                time_in_minutes = hours * 60 + minutes + seconds / 60
+                
+                if time_in_minutes <= 0:
+                    raise ValueError("Kopējam laikam jābūt lielākam par nulli.")
+            except ValueError as e:
+                if "invalid literal for int()" in str(e):
+                    raise ValueError("Laikam jābūt skaitlim.")
+                else:
+                    raise e
             
             # Pārbaudīt tempu
-            pace_str = pace_var.get().strip()
-            if not pace_str:
-                raise ValueError("Temps nav ievadīts.")
-            
-            # Tempa pārbaude un pārvēršana minūtēs
-            pace_in_minutes = self.parse_pace_to_minutes(pace_str)
-            if pace_in_minutes <= 0:
-                raise ValueError("Tempam jābūt pozitīvam.")
+            try:
+                pace_minutes = int(pace_minutes_var.get())
+                pace_seconds = int(pace_seconds_var.get())
+                
+                if pace_minutes < 0 or pace_seconds < 0:
+                    raise ValueError("Tempa vērtībām jābūt pozitīvām.")
+                
+                if pace_seconds >= 60:
+                    raise ValueError("Sekundēm jābūt mazākām par 60.")
+                
+                # Aprēķināt kopējo tempu minūtēs
+                pace_in_minutes = pace_minutes + pace_seconds / 60
+                
+                if pace_in_minutes <= 0:
+                    raise ValueError("Tempam jābūt lielākam par nulli.")
+            except ValueError as e:
+                if "invalid literal for int()" in str(e):
+                    raise ValueError("Tempam jābūt skaitlim.")
+                else:
+                    raise e
             
             # Aprēķināt distanci
             distance = time_in_minutes / pace_in_minutes
@@ -629,73 +781,39 @@ class SimpleRunnerCalculator:
         except Exception as e:
             messagebox.showerror("Kļūda", f"Notika kļūda: {e}")
     
-    def reset_fields(self, var1, var2, result_label):
-        """Notīrīt ievades laukus un rezultātu"""
-        var1.set("")
-        var2.set("")
-        result_label.config(
+    def reset_pace_fields(self, distance_var, hours_var, minutes_var, seconds_var):
+        """Notīrīt tempa kalkulatora laukus"""
+        distance_var.set("")
+        hours_var.set("0")
+        minutes_var.set("0")
+        seconds_var.set("0")
+        self.pace_result_label.config(
             text="Rezultāts parādīsies šeit", 
             fg=self.text_secondary
         )
     
-    def parse_time_to_minutes(self, time_str):
-        """Pārveido laika virkni (hh:mm:ss vai mm:ss) minūtēs"""
-        try:
-            # Atdalīt laika komponentes
-            parts = time_str.split(':')
-            
-            if len(parts) == 3:  # hh:mm:ss
-                hours = int(parts[0])
-                minutes = int(parts[1])
-                seconds = int(parts[2])
-                return hours * 60 + minutes + seconds / 60
-            elif len(parts) == 2:  # mm:ss
-                minutes = int(parts[0])
-                seconds = int(parts[1])
-                return minutes + seconds / 60
-            elif len(parts) == 1:  # tikai minūtes
-                return float(parts[0])
-            else:
-                raise ValueError("Nepareizs laika formāts. Izmantojiet mm:ss vai hh:mm:ss.")
-        except Exception:
-            raise ValueError("Nepareizs laika formāts. Izmantojiet mm:ss vai hh:mm:ss.")
-
-    def parse_pace_to_minutes(self, pace_str):
-        """Pārveido tempa virkni (mm:ss) minūtēs"""
-        try:
-            # Atdalīt tempa komponentes
-            parts = pace_str.split(':')
-            
-            if len(parts) == 2:  # mm:ss
-                minutes = int(parts[0])
-                seconds = int(parts[1])
-                return minutes + seconds / 60
-            elif len(parts) == 1:  # tikai minūtes
-                return float(parts[0])
-            else:
-                raise ValueError("Nepareizs tempa formāts. Izmantojiet mm:ss.")
-        except Exception:
-            raise ValueError("Nepareizs tempa formāts. Izmantojiet mm:ss.")
-
-    def format_minutes_to_time(self, minutes):
-        """Formatē minūtes kā mm:ss"""
-        total_seconds = int(minutes * 60)
-        minutes = total_seconds // 60
-        seconds = total_seconds % 60
-        return f"{minutes}:{seconds:02d}"
+    def reset_time_fields(self, distance_var, pace_minutes_var, pace_seconds_var):
+        """Notīrīt laika kalkulatora laukus"""
+        distance_var.set("")
+        pace_minutes_var.set("5")
+        pace_seconds_var.set("30")
+        self.time_result_label.config(
+            text="Rezultāts parādīsies šeit", 
+            fg=self.text_secondary
+        )
     
-    def format_time_for_display(self, minutes):
-        """Formatē minūtes kā hh:mm:ss vai mm:ss atkarībā no garuma"""
-        total_seconds = int(minutes * 60)
-        hours = total_seconds // 3600
-        minutes = (total_seconds % 3600) // 60
-        seconds = total_seconds % 60
-        
-        if hours > 0:
-            return f"{hours}:{minutes:02d}:{seconds:02d}"
-        else:
-            return f"{minutes}:{seconds:02d}"
-
+    def reset_distance_fields(self, hours_var, minutes_var, seconds_var, pace_minutes_var, pace_seconds_var):
+        """Notīrīt distances kalkulatora laukus"""
+        hours_var.set("0")
+        minutes_var.set("45")
+        seconds_var.set("0")
+        pace_minutes_var.set("5")
+        pace_seconds_var.set("45")
+        self.distance_result_label.config(
+            text="Rezultāts parādīsies šeit", 
+            fg=self.text_secondary
+        )
+    
     def show_start_page(self):
         """Parāda vienkāršu sākuma lapu ar programmas nosaukumu un īsu aprakstu"""
         # Notīrīt ekrānu, ja nepieciešams
@@ -710,23 +828,19 @@ class SimpleRunnerCalculator:
         title_frame = ttk.Frame(main_frame, style="TFrame")
         title_frame.pack(pady=(40, 10))
         
-        # Virsraksts ar lieliem burtiem un dzelteno krāsu
-        title_label = ttk.Label(title_frame, 
+        # Programmas informācijas karte
+        info_frame = ttk.Frame(main_frame, style="Card.TFrame")
+        info_frame.pack(fill=tk.X, padx=50, pady=10)
+        
+        # Programmas virsraksts
+        title_label = ttk.Label(info_frame, 
                              text="SKRĒJĒJA KALKULATORS", 
-                             font=("Arial", 28, "bold"), 
-                             foreground=self.primary_color)
-        title_label.pack()
+                             font=("Arial", 24, "bold"), 
+                             foreground=self.primary_color,
+                             style="Card.TLabel")
+        title_label.pack(pady=(20, 10), padx=20)
         
-        # Skrējēja ikona (emoji)
-        icon_label = ttk.Label(main_frame,
-                            font=("Arial", 50), 
-                            foreground=self.primary_color)
-        icon_label.pack(pady=(10, 30))
-        
-        # Programmas apraksta karte
-        card_frame = ttk.Frame(main_frame, style="Card.TFrame")
-        card_frame.pack(fill=tk.X, padx=50, pady=10)
-        
+        # Programmas apraksts
         intro_text = """
         Vienkāršs un ērts rīks, kas palīdzēs tev plānot skrējienus un sasniegt savus mērķus!
         
@@ -734,9 +848,11 @@ class SimpleRunnerCalculator:
           • Aprēķināt tempu (min/km), ievadot distanci un laiku
           • Aprēķināt laiku, ievadot distanci un tempu
           • Aprēķināt distanci, ievadot laiku un tempu
+        
+        Programmu izstrādāja: Kristiāna Kočubeja
         """
         
-        intro_label = ttk.Label(card_frame, 
+        intro_label = ttk.Label(info_frame, 
                              text=intro_text, 
                              wraplength=500, 
                              justify=tk.LEFT, 
@@ -757,7 +873,8 @@ class SimpleRunnerCalculator:
         
         # Autora informācija apakšā
         author_label = ttk.Label(main_frame, 
-                              text="© Skrējēju atbalsta komanda",
+                              text="COPYRIGHT © 2025 KRISTIĀNA KOČUBEJA\n" 
+                              "ALL RIGHTS RESERVED",
                               font=self.font_small, 
                               foreground=self.text_secondary)
         author_label.pack(side=tk.BOTTOM, pady=10)
@@ -765,5 +882,5 @@ class SimpleRunnerCalculator:
 # Palaist programmu
 if __name__ == "__main__":
     root = tk.Tk()
-    app = SimpleRunnerCalculator(root)
+    app = RunnerCalculator(root)
     root.mainloop()
