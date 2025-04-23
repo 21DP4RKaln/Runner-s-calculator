@@ -4,12 +4,13 @@ import re
 import math
 import random
 import time
+import emoji
 
 class ModernRunnerCalculator:
     def __init__(self, root):
         self.root = root
         self.root.title("Skrējēja Kalkulators")
-        self.root.geometry("1200x900")
+        self.root.geometry("800x700")
         self.root.resizable(True, True)
         
         # Krāsu shēma - dark mode
@@ -142,7 +143,8 @@ class ModernRunnerCalculator:
         canvas = tk.Canvas(splash_frame, width=600, height=150, bg=self.bg_color, highlightthickness=0)
         canvas.pack(pady=20)
         
-        runner_text = canvas.create_text(10, 75, text="🏃", font=("Arial", 40), fill=self.primary_color, anchor="w")
+        right_facing_runner = emoji.emojize(":person_running:", variant="emoji_type")
+        runner_text = canvas.create_text(10, 75, text=right_facing_runner, font=("Arial", 40), fill=self.primary_color, anchor="w")
         finish_line = canvas.create_line(550, 50, 550, 100, width=3, fill=self.accent_color)
         
         # Progress bar
@@ -528,7 +530,7 @@ class ModernRunnerCalculator:
         canvas.pack(padx=20, pady=20)
         
         # Zīmēsim skrējēja ikonu un rezultātu vizualizāciju
-        runner_icon = canvas.create_text(40, 50, text="🏃", font=("Arial", 24))
+        runner_icon = canvas.create_text(10, 75, text="\u200E🏃‍➡️", font=("Arial", 40), fill=self.primary_color, anchor="w")
         track = canvas.create_line(80, 50, 480, 50, width=2, fill=self.text_secondary)
         
         # Pogas
@@ -612,448 +614,292 @@ class ModernRunnerCalculator:
         # Piesaistīt funkcijas pogām
         calculate_button.config(command=calculate)
         reset_button.config(command=reset)
-    
-    def create_time_calculator(self):
-        """Izveido laika kalkulatora formu"""
-        # Virsraksts
-        title_frame = ttk.Frame(self.content_frame)
-        title_frame.pack(fill=tk.X, pady=(20, 30), padx=30)
-        
-        title_label = ttk.Label(title_frame, text="🕒 Laika Kalkulators", font=self.font_title, foreground=self.primary_color)
-        title_label.pack(side=tk.LEFT)
-        
-        # Apraksts
-        desc_frame = ttk.Frame(self.content_frame)
-        desc_frame.pack(fill=tk.X, pady=10, padx=30)
-        
-        desc_text = "Aprēķini, cik ilgs laiks būs nepieciešams, lai noskrietu norādīto distanci ar noteiktu tempu."
-        desc_label = ttk.Label(desc_frame, text=desc_text, wraplength=500)
-        desc_label.pack(anchor="w")
-        
-        # Formula
-        formula_frame = ttk.Frame(self.content_frame)
-        formula_frame.pack(fill=tk.X, pady=10, padx=30)
-        
-        formula_text = "Formula: Laiks = Temps × Distance"
-        formula_label = ttk.Label(formula_frame, text=formula_text, font=self.font_small, foreground="#666666")
-        formula_label.pack(anchor="w")
-        
-        # Ievades lauki
-        input_frame = ttk.Frame(self.content_frame)
-        input_frame.pack(fill=tk.X, pady=20, padx=30)
-        
-        # Stila rāmis
-        entry_style_frame = ttk.Frame(input_frame, style="Card.TFrame")
-        entry_style_frame.pack(fill=tk.X, pady=10, padx=10)
-        
-        # Distance
-        distance_frame = ttk.Frame(entry_style_frame)
-        distance_frame.pack(fill=tk.X, pady=10, padx=20)
-        
-        distance_label = ttk.Label(distance_frame, text="Distance (km):", width=20, anchor="w")
-        distance_label.pack(side=tk.LEFT, padx=(0, 10))
-        
-        distance_var = tk.StringVar()
-        distance_entry = ttk.Entry(distance_frame, textvariable=distance_var, width=15)
-        distance_entry.pack(side=tk.LEFT)
-        
-        distance_example = ttk.Label(distance_frame, text="Piemērs: 10", font=self.font_small, foreground="#888888")
-        distance_example.pack(side=tk.LEFT, padx=10)
-        
-        # Temps
-        pace_frame = ttk.Frame(entry_style_frame)
-        pace_frame.pack(fill=tk.X, pady=10, padx=20)
-        
-        pace_label = ttk.Label(pace_frame, text="Temps (min/km):", width=20, anchor="w")
-        pace_label.pack(side=tk.LEFT, padx=(0, 10))
-        
-        pace_var = tk.StringVar()
-        pace_entry = ttk.Entry(pace_frame, textvariable=pace_var, width=15)
-        pace_entry.pack(side=tk.LEFT)
-        
-        pace_example = ttk.Label(pace_frame, text="Piemērs: 6:30", font=self.font_small, foreground="#888888")
-        pace_example.pack(side=tk.LEFT, padx=10)
-        
-        # Rezultāts
-        result_frame = ttk.Frame(self.content_frame)
-        result_frame.pack(fill=tk.X, pady=20, padx=30)
-        
-        result_label = ttk.Label(result_frame, text="Rezultāts parādīsies šeit", 
-                               font=self.font_subtitle, foreground="#888888",
-                               background="#f0f0f0", padding=20)
-        result_label.pack(fill=tk.X)
-        
-        # Vizualizācija
-        visual_frame = ttk.Frame(self.content_frame)
-        visual_frame.pack(fill=tk.X, pady=10, padx=30)
-        
-        canvas = tk.Canvas(visual_frame, width=500, height=100, bg=self.bg_color, highlightthickness=0)
-        canvas.pack()
-        
-        # Pulksteņa ikona un laika vizualizācija
-        clock_icon = canvas.create_text(50, 50, text="⏱️", font=("Arial", 24))
-        timeline = canvas.create_line(80, 50, 480, 50, width=2, fill="#cccccc")
-        
-        # Pogas
-        button_frame = ttk.Frame(self.content_frame)
-        button_frame.pack(fill=tk.X, pady=20, padx=30)
-        
-        calculate_button = ttk.Button(button_frame, text="Aprēķināt Laiku", 
-                                    style="Accent.TButton")
-        calculate_button.pack(side=tk.LEFT, padx=5)
-        
-        reset_button = ttk.Button(button_frame, text="Notīrīt")
-        reset_button.pack(side=tk.LEFT, padx=5)
-        
-        # Papildu informācija
-        info_frame = ttk.Frame(self.content_frame)
-        info_frame.pack(fill=tk.X, pady=10, padx=30, side=tk.BOTTOM)
-        
-        info_text = "Padoms: Ievadiet distanci un tempu, lai aprēķinātu, cik ilgs laiks būs nepieciešams."
-        info_label = ttk.Label(info_frame, text=info_text, font=self.font_small, foreground="#888888")
-        info_label.pack(anchor="w")
-        
-        # Funkcijas
-        def calculate():
-            """Aprēķina laiku"""
-            distance_str = distance_var.get().strip()
-            pace_str = pace_var.get().strip()
-            
-            try:
-                # Pārbaudīt distanci
-                if not distance_str:
-                    raise ValueError("Distance nav ievadīta.")
-                distance = float(distance_str.replace(',', '.'))
-                if distance <= 0:
-                    raise ValueError("Distancei jābūt pozitīvam skaitlim.")
-                
-                # Pārbaudīt tempu
-                if not pace_str:
-                    raise ValueError("Temps nav ievadīts.")
-                
-                # Tempa pārbaude un pārvēršana minūtēs
-                pace_in_minutes = self.parse_pace_to_minutes(pace_str)
-                if pace_in_minutes <= 0:
-                    raise ValueError("Tempam jābūt pozitīvam.")
-                
-                # Aprēķināt laiku
-                time_in_minutes = pace_in_minutes * distance
-                
-                # Formatēt laiku
-                time_formatted = self.format_minutes_to_time(time_in_minutes)
-                
-                # Parādīt rezultātu
-                result_label.config(text=f"Jūsu laiks: {time_formatted}", 
-                                   foreground="#000000", background="#d4edda")
-                
-                # Atjaunot vizualizāciju
-                self.update_time_visualization(canvas, clock_icon, time_in_minutes)
-                
-            except ValueError as e:
-                messagebox.showerror("Kļūda", str(e))
-            except Exception as e:
-                messagebox.showerror("Kļūda", f"Notika kļūda: {e}")
-        
-        def reset():
-            """Notīrīt ievades laukus"""
-            distance_var.set("")
-            pace_var.set("")
-            result_label.config(text="Rezultāts parādīsies šeit", 
-                              foreground="#888888", background="#f0f0f0")
-            
-            # Atiestatīt vizualizāciju
-            canvas.coords(clock_icon, 50, 50)
-            canvas.delete("time_indicator")
 
-        # Piesaistīt funkcijas pogām
-        calculate_button.config(command=calculate)
-        reset_button.config(command=reset)
+def create_distance_calculator(self):
+    """Izveido distances kalkulatora formu"""
+    # Virsraksts
+    title_frame = ttk.Frame(self.content_frame)
+    title_frame.pack(fill=tk.X, pady=(20, 30), padx=30)
     
-    def create_distance_calculator(self):
-        """Izveido distances kalkulatora formu"""
-        # Virsraksts
-        title_frame = ttk.Frame(self.content_frame)
-        title_frame.pack(fill=tk.X, pady=(20, 30), padx=30)
-        
-        title_label = ttk.Label(title_frame, text="📏 Distances Kalkulators", font=self.font_title, foreground=self.primary_color)
-        title_label.pack(side=tk.LEFT)
-        
-        # Apraksts
-        desc_frame = ttk.Frame(self.content_frame)
-        desc_frame.pack(fill=tk.X, pady=10, padx=30)
-        
-        desc_text = "Aprēķini, cik lielu distanci var noskriet noteiktā laikā ar konkrētu tempu."
-        desc_label = ttk.Label(desc_frame, text=desc_text, wraplength=500)
-        desc_label.pack(anchor="w")
-        
-        # Formula
-        formula_frame = ttk.Frame(self.content_frame)
-        formula_frame.pack(fill=tk.X, pady=10, padx=30)
-        
-        formula_text = "Formula: Distance = Laiks / Temps"
-        formula_label = ttk.Label(formula_frame, text=formula_text, font=self.font_small, foreground="#666666")
-        formula_label.pack(anchor="w")
-        
-        # Ievades lauki
-        input_frame = ttk.Frame(self.content_frame)
-        input_frame.pack(fill=tk.X, pady=20, padx=30)
-        
-        # Stila rāmis
-        entry_style_frame = ttk.Frame(input_frame, style="Card.TFrame")
-        entry_style_frame.pack(fill=tk.X, pady=10, padx=10)
-        
-        # Laiks
-        time_frame = ttk.Frame(entry_style_frame)
-        time_frame.pack(fill=tk.X, pady=10, padx=20)
-        
-        time_label = ttk.Label(time_frame, text="Laiks (hh:mm:ss):", width=20, anchor="w")
-        time_label.pack(side=tk.LEFT, padx=(0, 10))
-        
-        time_var = tk.StringVar()
-        time_entry = ttk.Entry(time_frame, textvariable=time_var, width=15)
-        time_entry.pack(side=tk.LEFT)
-        
-        time_example = ttk.Label(time_frame, text="Piemērs: 01:30:00 vai 45:00", font=self.font_small, foreground="#888888")
-        time_example.pack(side=tk.LEFT, padx=10)
-        
-        # Temps
-        pace_frame = ttk.Frame(entry_style_frame)
-        pace_frame.pack(fill=tk.X, pady=10, padx=20)
-        
-        pace_label = ttk.Label(pace_frame, text="Temps (min/km):", width=20, anchor="w")
-        pace_label.pack(side=tk.LEFT, padx=(0, 10))
-        
-        pace_var = tk.StringVar()
-        pace_entry = ttk.Entry(pace_frame, textvariable=pace_var, width=15)
-        pace_entry.pack(side=tk.LEFT)
-        
-        pace_example = ttk.Label(pace_frame, text="Piemērs: 5:45", font=self.font_small, foreground="#888888")
-        pace_example.pack(side=tk.LEFT, padx=10)
-        
-        # Rezultāts
-        result_frame = ttk.Frame(self.content_frame)
-        result_frame.pack(fill=tk.X, pady=20, padx=30)
-        
-        result_label = ttk.Label(result_frame, text="Rezultāts parādīsies šeit", 
+    title_label = ttk.Label(title_frame, text="📏 Distances Kalkulators", font=self.font_title, foreground=self.primary_color)
+    title_label.pack(side=tk.LEFT)
+    
+    # Apraksts
+    desc_frame = ttk.Frame(self.content_frame)
+    desc_frame.pack(fill=tk.X, pady=10, padx=30)
+    
+    desc_text = "Aprēķini, cik lielu distanci var noskriet noteiktā laikā ar konkrētu tempu."
+    desc_label = ttk.Label(desc_frame, text=desc_text, wraplength=500)
+    desc_label.pack(anchor="w")
+    
+    # Formula
+    formula_frame = ttk.Frame(self.content_frame)
+    formula_frame.pack(fill=tk.X, pady=10, padx=30)
+    
+    formula_text = "Formula: Distance = Laiks / Temps"
+    formula_label = ttk.Label(formula_frame, text=formula_text, font=self.font_small, foreground="#666666")
+    formula_label.pack(anchor="w")
+    
+    # Ievades lauki
+    input_frame = ttk.Frame(self.content_frame)
+    input_frame.pack(fill=tk.X, pady=20, padx=30)
+    
+    # Stila rāmis
+    entry_style_frame = ttk.Frame(input_frame, style="Card.TFrame")
+    entry_style_frame.pack(fill=tk.X, pady=10, padx=10)
+    
+    # Laiks
+    time_frame = ttk.Frame(entry_style_frame)
+    time_frame.pack(fill=tk.X, pady=10, padx=20)
+    
+    time_label = ttk.Label(time_frame, text="Laiks (hh:mm:ss):", width=20, anchor="w")
+    time_label.pack(side=tk.LEFT, padx=(0, 10))
+    
+    time_var = tk.StringVar()
+    time_entry = ttk.Entry(time_frame, textvariable=time_var, width=15)
+    time_entry.pack(side=tk.LEFT)
+    
+    time_example = ttk.Label(time_frame, text="Piemērs: 01:30:00 vai 45:00", font=self.font_small, foreground="#888888")
+    time_example.pack(side=tk.LEFT, padx=10)
+    
+    # Temps
+    pace_frame = ttk.Frame(entry_style_frame)
+    pace_frame.pack(fill=tk.X, pady=10, padx=20)
+    
+    pace_label = ttk.Label(pace_frame, text="Temps (min/km):", width=20, anchor="w")
+    pace_label.pack(side=tk.LEFT, padx=(0, 10))
+    
+    pace_var = tk.StringVar()
+    pace_entry = ttk.Entry(pace_frame, textvariable=pace_var, width=15)
+    pace_entry.pack(side=tk.LEFT)
+    
+    pace_example = ttk.Label(pace_frame, text="Piemērs: 5:45", font=self.font_small, foreground="#888888")
+    pace_example.pack(side=tk.LEFT, padx=10)
+    
+    # Rezultāts
+    result_frame = ttk.Frame(self.content_frame)
+    result_frame.pack(fill=tk.X, pady=20, padx=30)
+    
+    result_label = ttk.Label(result_frame, text="Rezultāts parādīsies šeit", 
                          font=self.font_subtitle, foreground="#888888",
                          background="#f0f0f0", padding=20)
-        result_label.pack(fill=tk.X)
-        
-        # Vizualizācija
-        visual_frame = ttk.Frame(self.content_frame)
-        visual_frame.pack(fill=tk.X, pady=10, padx=30)
-        
-        canvas = tk.Canvas(visual_frame, width=500, height=100, bg=self.bg_color, highlightthickness=0)
-        canvas.pack()
-        
-        # Distances ikona un vizualizācija
-        distance_icon = canvas.create_text(50, 50, text="📏", font=("Arial", 24))
-        track = canvas.create_line(80, 50, 480, 50, width=2, fill="#cccccc")
-        
-        # Pogas
-        button_frame = ttk.Frame(self.content_frame)
-        button_frame.pack(fill=tk.X, pady=20, padx=30)
-        
-        calculate_button = ttk.Button(button_frame, text="Aprēķināt Distanci", 
+    result_label.pack(fill=tk.X)
+    
+    # Vizualizācija
+    visual_frame = ttk.Frame(self.content_frame)
+    visual_frame.pack(fill=tk.X, pady=10, padx=30)
+    
+    canvas = tk.Canvas(visual_frame, width=500, height=100, bg=self.bg_color, highlightthickness=0)
+    canvas.pack()
+    
+    # Distances ikona un vizualizācija
+    distance_icon = canvas.create_text(50, 50, text="📏", font=("Arial", 24))
+    track = canvas.create_line(80, 50, 480, 50, width=2, fill="#cccccc")
+    
+    # Pogas
+    button_frame = ttk.Frame(self.content_frame)
+    button_frame.pack(fill=tk.X, pady=20, padx=30)
+    
+    calculate_button = ttk.Button(button_frame, text="Aprēķināt Distanci", 
                                 style="Accent.TButton")
-        calculate_button.pack(side=tk.LEFT, padx=5)
+    calculate_button.pack(side=tk.LEFT, padx=5)
+    
+    reset_button = ttk.Button(button_frame, text="Notīrīt")
+    reset_button.pack(side=tk.LEFT, padx=5)
+    
+    # Papildu informācija
+    info_frame = ttk.Frame(self.content_frame)
+    info_frame.pack(fill=tk.X, pady=10, padx=30, side=tk.BOTTOM)
+    
+    info_text = "Padoms: Ievadiet laiku un tempu, lai aprēķinātu, cik lielu distanci var noskriet."
+    info_label = ttk.Label(info_frame, text=info_text, font=self.font_small, foreground="#888888")
+    info_label.pack(anchor="w")
+    
+    # Funkcijas
+    def calculate():
+        """Aprēķina distanci"""
+        time_str = time_var.get().strip()
+        pace_str = pace_var.get().strip()
         
-        reset_button = ttk.Button(button_frame, text="Notīrīt")
-        reset_button.pack(side=tk.LEFT, padx=5)
-        
-        # Papildu informācija
-        info_frame = ttk.Frame(self.content_frame)
-        info_frame.pack(fill=tk.X, pady=10, padx=30, side=tk.BOTTOM)
-        
-        info_text = "Padoms: Ievadiet laiku un tempu, lai aprēķinātu, cik lielu distanci var noskriet."
-        info_label = ttk.Label(info_frame, text=info_text, font=self.font_small, foreground="#888888")
-        info_label.pack(anchor="w")
-        
-        # Funkcijas
-        def calculate():
-            """Aprēķina distanci"""
-            time_str = time_var.get().strip()
-            pace_str = pace_var.get().strip()
+        try:
+            # Pārbaudīt laiku
+            if not time_str:
+                raise ValueError("Laiks nav ievadīts.")
             
-            try:
-                # Pārbaudīt laiku
-                if not time_str:
-                    raise ValueError("Laiks nav ievadīts.")
-                
-                # Laika pārbaude un pārvēršana minūtēs
-                time_in_minutes = self.parse_time_to_minutes(time_str)
-                if time_in_minutes <= 0:
-                    raise ValueError("Laikam jābūt pozitīvam.")
-                
-                # Pārbaudīt tempu
-                if not pace_str:
-                    raise ValueError("Temps nav ievadīts.")
-                
-                # Tempa pārbaude un pārvēršana minūtēs
-                pace_in_minutes = self.parse_pace_to_minutes(pace_str)
-                if pace_in_minutes <= 0:
-                    raise ValueError("Tempam jābūt pozitīvam.")
-                
-                # Aprēķināt distanci
-                distance = time_in_minutes / pace_in_minutes
-                
-                # Parādīt rezultātu
-                result_label.config(text=f"Jūsu distance: {distance:.2f} km", 
+            # Laika pārbaude un pārvēršana minūtēs
+            time_in_minutes = self.parse_time_to_minutes(time_str)
+            if time_in_minutes <= 0:
+                raise ValueError("Laikam jābūt pozitīvam.")
+            
+            # Pārbaudīt tempu
+            if not pace_str:
+                raise ValueError("Temps nav ievadīts.")
+            
+            # Tempa pārbaude un pārvēršana minūtēs
+            pace_in_minutes = self.parse_pace_to_minutes(pace_str)
+            if pace_in_minutes <= 0:
+                raise ValueError("Tempam jābūt pozitīvam.")
+            
+            # Aprēķināt distanci
+            distance = time_in_minutes / pace_in_minutes
+            
+            # Parādīt rezultātu
+            result_label.config(text=f"Jūsu distance: {distance:.2f} km", 
                                foreground="#000000", background="#d4edda")
-                
-                # Atjaunot vizualizāciju
-                self.update_distance_visualization(canvas, distance_icon, distance)
-                
-            except ValueError as e:
-                messagebox.showerror("Kļūda", str(e))
-            except Exception as e:
-                messagebox.showerror("Kļūda", f"Notika kļūda: {e}")
-        
-        def reset():
-            """Notīrīt ievades laukus"""
-            time_var.set("")
-            pace_var.set("")
-            result_label.config(text="Rezultāts parādīsies šeit", 
+            
+            # Atjaunot vizualizāciju
+            self.update_distance_visualization(canvas, distance_icon, distance)
+            
+        except ValueError as e:
+            messagebox.showerror("Kļūda", str(e))
+        except Exception as e:
+            messagebox.showerror("Kļūda", f"Notika kļūda: {e}")
+    
+    def reset():
+        """Notīrīt ievades laukus"""
+        time_var.set("")
+        pace_var.set("")
+        result_label.config(text="Rezultāts parādīsies šeit", 
                           foreground="#888888", background="#f0f0f0")
-            
-            # Atiestatīt vizualizāciju
-            canvas.coords(distance_icon, 50, 50)
-            canvas.delete("distance_indicator")
         
-        # Piesaistīt funkcijas pogām
-        calculate_button.config(command=calculate)
-        reset_button.config(command=reset)
-
-    def parse_time_to_minutes(self, time_str):
-        """Pārveido laika virkni (hh:mm:ss vai mm:ss) minūtēs"""
-        try:
-            # Atdalīt laika komponentes
-            parts = time_str.split(':')
-            
-            if len(parts) == 3:  # hh:mm:ss
-                hours = int(parts[0])
-                minutes = int(parts[1])
-                seconds = int(parts[2])
-                return hours * 60 + minutes + seconds / 60
-            elif len(parts) == 2:  # mm:ss
-                minutes = int(parts[0])
-                seconds = int(parts[1])
-                return minutes + seconds / 60
-            elif len(parts) == 1:  # tikai minūtes
-                return float(parts[0])
-            else:
-                raise ValueError("Nepareizs laika formāts. Izmantojiet hh:mm:ss vai mm:ss.")
-        except Exception:
-            raise ValueError("Nepareizs laika formāts. Izmantojiet hh:mm:ss vai mm:ss.")
-
-    def parse_pace_to_minutes(self, pace_str):
-        """Pārveido tempa virkni (mm:ss) minūtēs"""
-        try:
-            # Atdalīt tempa komponentes
-            parts = pace_str.split(':')
-            
-            if len(parts) == 2:  # mm:ss
-                minutes = int(parts[0])
-                seconds = int(parts[1])
-                return minutes + seconds / 60
-            elif len(parts) == 1:  # tikai minūtes
-                return float(parts[0])
-            else:
-                raise ValueError("Nepareizs tempa formāts. Izmantojiet mm:ss.")
-        except Exception:
-            raise ValueError("Nepareizs tempa formāts. Izmantojiet mm:ss.")
-
-    def format_minutes_to_time(self, minutes):
-        """Formatē minūtes kā mm:ss"""
-        total_seconds = int(minutes * 60)
-        minutes = total_seconds // 60
-        seconds = total_seconds % 60
-        return f"{minutes}:{seconds:02d}"
-
-    def update_pace_visualization(self, canvas, runner_icon, pace_minutes):
-        """Atjauno tempa vizualizāciju"""
-        # Notīrīt iepriekšējo vizualizāciju
-        canvas.delete("pace_indicator")
-        
-        # Aprēķināt ātruma vizualizāciju (apgriezti - mazāks temps = ātrāk)
-        min_pace = 4  # ātrākais temps, ko vizualizēt (4 min/km)
-        max_pace = 10  # lēnākais temps, ko vizualizēt (10 min/km)
-        
-        # Normalizēt tempu
-        normalized_pace = min(max(pace_minutes, min_pace), max_pace)
-        
-        # Aprēķināt pozīciju (apgriezts - mazāks temps = tālāk pa labi)
-        position = 480 - ((normalized_pace - min_pace) / (max_pace - min_pace)) * 400
-        
-        # Pārvietot skrējēja ikonu
-        canvas.coords(runner_icon, position, 50)
-        
-        # Pievienot tempa indikatoru
-        canvas.create_line(position, 45, position, 55, width=2, fill=self.secondary_color, tags="pace_indicator")
-        canvas.create_text(position, 30, text=f"{self.format_minutes_to_time(pace_minutes)} min/km", 
-                          font=self.font_small, fill=self.primary_color, tags="pace_indicator")
-
-    def update_time_visualization(self, canvas, clock_icon, time_minutes):
-        """Atjauno laika vizualizāciju"""
-        # Notīrīt iepriekšējo vizualizāciju
-        canvas.delete("time_indicator")
-        
-        # Aprēķināt laika vizualizāciju
-        min_time = 15  # minimālais laiks, ko vizualizēt (15 min)
-        max_time = 120  # maksimālais laiks, ko vizualizēt (2h)
-        
-        # Normalizēt laiku
-        normalized_time = min(max(time_minutes, min_time), max_time)
-        
-        # Aprēķināt pozīciju
-        position = 80 + ((normalized_time - min_time) / (max_time - min_time)) * 400
-        
-        # Pievienot laika indikatoru
-        canvas.create_line(position, 45, position, 55, width=2, fill=self.secondary_color, tags="time_indicator")
-        
-        # Formatēt laiku hh:mm formātā
-        hours = int(time_minutes) // 60
-        minutes = int(time_minutes) % 60
-        time_str = f"{hours}:{minutes:02d}" if hours > 0 else f"{minutes} min"
-        
-        canvas.create_text(position, 30, text=time_str, 
-                          font=self.font_small, fill=self.primary_color, tags="time_indicator")
-
-    def update_distance_visualization(self, canvas, distance_icon, distance):
-        """Atjauno distances vizualizāciju"""
-        # Notīrīt iepriekšējo vizualizāciju
+        # Atiestatīt vizualizāciju
+        canvas.coords(distance_icon, 50, 50)
         canvas.delete("distance_indicator")
-        
-        # Aprēķināt distances vizualizāciju
-        min_distance = 1  # minimālā distance, ko vizualizēt (1 km)
-        max_distance = 42  # maksimālā distance, ko vizualizēt (maratons 42 km)
-        
-        # Normalizēt distanci
-        normalized_distance = min(max(distance, min_distance), max_distance)
-        
-        # Aprēķināt pozīciju
-        position = 80 + ((normalized_distance - min_distance) / (max_distance - min_distance)) * 400
-        
-        # Pievienot distances indikatoru
-        canvas.create_line(position, 45, position, 55, width=2, fill=self.secondary_color, tags="distance_indicator")
-        canvas.create_text(position, 30, text=f"{distance:.2f} km", 
-                          font=self.font_small, fill=self.primary_color, tags="distance_indicator")
+    
+    # Piesaistīt funkcijas pogām
+    calculate_button.config(command=calculate)
+    reset_button.config(command=reset)
 
-    def get_random_quote(self):
-        """Atgriež nejauši izvēlētu motivējošu citātu"""
-        quotes = [
-            "Dzīve ir kā maratons, ne sprints.",
-            "Katrs solis tevi tuvina mērķim.",
-            "Skrējiens ir kā dzīve, tam nepieciešama disciplīna.",
-            "Svarīgākais ir neapstāties.",
-            "Labāk lēni skriet, nekā vispār neskriet.",
-            "Vislielākā uzvara ir uzvara pār sevi.",
-            "Mērķis nav vienmēr tikai finišs, bet gan ceļš.",
-            "Patiess skrējējs sacenšas tikai ar sevi.",
-            "Labs temps nozīmē saprātīgu piepūli.",
-            "Katrs kilometrs ir sasniegums."
-        ]
-        return random.choice(quotes)
+def parse_time_to_minutes(self, time_str):
+    """Pārveido laika virkni (hh:mm:ss vai mm:ss) minūtēs"""
+    try:
+        # Atdalīt laika komponentes
+        parts = time_str.split(':')
+        
+        if len(parts) == 3:  # hh:mm:ss
+            hours = int(parts[0])
+            minutes = int(parts[1])
+            seconds = int(parts[2])
+            return hours * 60 + minutes + seconds / 60
+        elif len(parts) == 2:  # mm:ss
+            minutes = int(parts[0])
+            seconds = int(parts[1])
+            return minutes + seconds / 60
+        elif len(parts) == 1:  # tikai minūtes
+            return float(parts[0])
+        else:
+            raise ValueError("Nepareizs laika formāts. Izmantojiet hh:mm:ss vai mm:ss.")
+    except Exception:
+        raise ValueError("Nepareizs laika formāts. Izmantojiet hh:mm:ss vai mm:ss.")
+
+def parse_pace_to_minutes(self, pace_str):
+    """Pārveido tempa virkni (mm:ss) minūtēs"""
+    try:
+        # Atdalīt tempa komponentes
+        parts = pace_str.split(':')
+        
+        if len(parts) == 2:  # mm:ss
+            minutes = int(parts[0])
+            seconds = int(parts[1])
+            return minutes + seconds / 60
+        elif len(parts) == 1:  # tikai minūtes
+            return float(parts[0])
+        else:
+            raise ValueError("Nepareizs tempa formāts. Izmantojiet mm:ss.")
+    except Exception:
+        raise ValueError("Nepareizs tempa formāts. Izmantojiet mm:ss.")
+
+def format_minutes_to_time(self, minutes):
+    """Formatē minūtes kā mm:ss"""
+    total_seconds = int(minutes * 60)
+    minutes = total_seconds // 60
+    seconds = total_seconds % 60
+    return f"{minutes}:{seconds:02d}"
+
+def update_pace_visualization(self, canvas, runner_icon, pace_minutes):
+    """Atjauno tempa vizualizāciju"""
+    # Notīrīt iepriekšējo vizualizāciju
+    canvas.delete("pace_indicator")
+    
+    # Aprēķināt ātruma vizualizāciju (apgriezti - mazāks temps = ātrāk)
+    min_pace = 4  # ātrākais temps, ko vizualizēt (4 min/km)
+    max_pace = 10  # lēnākais temps, ko vizualizēt (10 min/km)
+    
+    # Normalizēt tempu
+    normalized_pace = min(max(pace_minutes, min_pace), max_pace)
+    
+    # Aprēķināt pozīciju (apgriezts - mazāks temps = tālāk pa labi)
+    position = 480 - ((normalized_pace - min_pace) / (max_pace - min_pace)) * 400
+    
+    # Pārvietot skrējēja ikonu
+    canvas.coords(runner_icon, position, 50)
+    
+    # Pievienot tempa indikatoru
+    canvas.create_line(position, 45, position, 55, width=2, fill=self.secondary_color, tags="pace_indicator")
+    canvas.create_text(position, 30, text=f"{self.format_minutes_to_time(pace_minutes)} min/km", 
+                      font=self.font_small, fill=self.primary_color, tags="pace_indicator")
+
+def update_time_visualization(self, canvas, clock_icon, time_minutes):
+    """Atjauno laika vizualizāciju"""
+    # Notīrīt iepriekšējo vizualizāciju
+    canvas.delete("time_indicator")
+    
+    # Aprēķināt laika vizualizāciju
+    min_time = 15  # minimālais laiks, ko vizualizēt (15 min)
+    max_time = 120  # maksimālais laiks, ko vizualizēt (2h)
+    
+    # Normalizēt laiku
+    normalized_time = min(max(time_minutes, min_time), max_time)
+    
+    # Aprēķināt pozīciju
+    position = 80 + ((normalized_time - min_time) / (max_time - min_time)) * 400
+    
+    # Pievienot laika indikatoru
+    canvas.create_line(position, 45, position, 55, width=2, fill=self.secondary_color, tags="time_indicator")
+    
+    # Formatēt laiku hh:mm formātā
+    hours = int(time_minutes) // 60
+    minutes = int(time_minutes) % 60
+    time_str = f"{hours}:{minutes:02d}" if hours > 0 else f"{minutes} min"
+    
+    canvas.create_text(position, 30, text=time_str, 
+                      font=self.font_small, fill=self.primary_color, tags="time_indicator")
+
+def update_distance_visualization(self, canvas, distance_icon, distance):
+    """Atjauno distances vizualizāciju"""
+    # Notīrīt iepriekšējo vizualizāciju
+    canvas.delete("distance_indicator")
+    
+    # Aprēķināt distances vizualizāciju
+    min_distance = 1  # minimālā distance, ko vizualizēt (1 km)
+    max_distance = 42  # maksimālā distance, ko vizualizēt (maratons 42 km)
+    
+    # Normalizēt distanci
+    normalized_distance = min(max(distance, min_distance), max_distance)
+    
+    # Aprēķināt pozīciju
+    position = 80 + ((normalized_distance - min_distance) / (max_distance - min_distance)) * 400
+    
+    # Pievienot distances indikatoru
+    canvas.create_line(position, 45, position, 55, width=2, fill=self.secondary_color, tags="distance_indicator")
+    canvas.create_text(position, 30, text=f"{distance:.2f} km", 
+                      font=self.font_small, fill=self.primary_color, tags="distance_indicator")
+
+def get_random_quote(self):
+    """Atgriež nejauši izvēlētu motivējošu citātu"""
+    quotes = [
+        "Dzīve ir kā maratons, ne sprints.",
+        "Katrs solis tevi tuvina mērķim.",
+        "Skrējiens ir kā dzīve, tam nepieciešama disciplīna.",
+        "Svarīgākais ir neapstāties.",
+        "Labāk lēni skriet, nekā vispār neskriet.",
+        "Vislielākā uzvara ir uzvara pār sevi.",
+        "Mērķis nav vienmēr tikai finišs, bet gan ceļš.",
+        "Patiess skrējējs sacenšas tikai ar sevi.",
+        "Labs temps nozīmē saprātīgu piepūli.",
+        "Katrs kilometrs ir sasniegums."
+    ]
+    return random.choice(quotes)
 
 # Palaist programmu
 if __name__ == "__main__":
