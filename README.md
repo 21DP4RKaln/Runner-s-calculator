@@ -17,7 +17,7 @@ The Runner Calculator provides three essential calculators for runners:
 
 1. Clone the repository or download the files
    ```
-   git clone https://github.com/yourusername/runner-calculator.git
+   git clone https://github.com/21DP4RKaln/Runner-s-calculator.git
    ```
 
 2. Navigate to the project directory
