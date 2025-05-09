@@ -98,8 +98,7 @@ class RunnerCalculator:
                             foreground=self.primary_color,
                             style="Card.TLabel")
         menu_title.pack(pady=(20, 20), padx=10)
-        
-        # Izvēlnes pogas
+          # Izvēlnes pogas
         menu_options = [
             ("Tempa Kalkulators", lambda: self.show_calculator("pace"), "⏱️"),
             ("Laika Kalkulators", lambda: self.show_calculator("time"), "🕒"),
@@ -122,6 +121,25 @@ class RunnerCalculator:
                             anchor="w", 
                             padx=10)
             button.pack(fill=tk.X, pady=1)
+          # Atstarpe pirms atgriešanās pogas (Spacer)
+        spacer = ttk.Frame(self.menu_frame, style="Card.TFrame", height=30)
+        spacer.pack(fill=tk.X, pady=10)
+        
+        # Poga atgriezties uz sākumlapu
+        home_button = tk.Button(self.menu_frame, 
+                            text="🏠 Atgriezties sākumā", 
+                            command=self.show_start_page,
+                            font=self.font_normal, 
+                            bg=self.card_bg, 
+                            fg=self.primary_color, 
+                            bd=0,
+                            highlightthickness=0, 
+                            activebackground=self.primary_color,
+                            activeforeground="#000000",
+                            width=18, 
+                            anchor="w", 
+                            padx=10)
+        home_button.pack(fill=tk.X, side=tk.BOTTOM, padx=0, pady=(0, 10))
         
         # Sākotnēji parādīt tempa kalkulatoru
         self.show_calculator("pace")
@@ -870,14 +888,6 @@ class RunnerCalculator:
                                padding=(20, 10),
                                command=self.create_main_page)
         start_button.pack()
-        
-        # Autora informācija apakšā
-        author_label = ttk.Label(main_frame, 
-                              text="COPYRIGHT © 2025 KRISTIĀNA KOČUBEJA\n" 
-                              "ALL RIGHTS RESERVED",
-                              font=self.font_small, 
-                              foreground=self.text_secondary)
-        author_label.pack(side=tk.BOTTOM, pady=10)
 
 # Palaist programmu
 if __name__ == "__main__":
